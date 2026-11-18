@@ -52,6 +52,8 @@ final class SystemStatus: ObservableObject {
     // to the code it had at registration, and after a rebuild its spawn intermittently fails with a launch
     // constraint violation. Returns whether the agent copy is running.
     func startAgent() -> Bool {
+        // A quarantined app opened outside /Applications runs from a random read-only path that is gone after quit.
+        if Bundle.main.bundlePath.contains("/AppTranslocation/") { return false }
         let lock = open(NSTemporaryDirectory() + "com.durlea.fastscreenshot.register.lock", O_CREAT | O_RDWR, 0o600)
         if lock >= 0 { flock(lock, LOCK_EX) }
         defer { if lock >= 0 { flock(lock, LOCK_UN); close(lock) } }

@@ -1,3 +1,5 @@
+<img src="docs/icon.png" width="96" alt="Fast Screenshot icon">
+
 # Fast Screenshot
 
 [![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](./VERSION)
@@ -5,6 +7,8 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 
 Fast Screenshot is a macOS menu bar app that maps a key, a mouse button or a combination of them to an area screenshot. Holding the trigger opens the macOS selection crosshair at the pointer, moving the pointer draws the selection, and releasing the trigger captures it.
+
+![Settings demo: holding mouse button 4 draws a selection over the desktop and copies it](docs/demo.gif)
 
 ---
 
@@ -33,13 +37,24 @@ The capture uses the system screenshot shortcut for the selected target, which m
 
 ## Installation
 
+### From a release
+
+1. Download `FastScreenshot-<version>.zip` from [Releases](https://github.com/AndreiDurlea/fast-screenshot-macos/releases) and unzip it.
+2. Move `FastScreenshot.app` to `/Applications`. Opened from any other folder, the quarantined app runs from a temporary path and does not register its login agent.
+3. Open it. macOS blocks the first launch because the app is not notarized; click Open Anyway in System Settings › Privacy & Security, then open it again.
+4. Allow Accessibility and record a trigger in the onboarding window.
+
+### From source
+
 ```bash
 git clone https://github.com/AndreiDurlea/fast-screenshot-macos.git
 cd fast-screenshot-macos
 ./scripts/build-app.sh --install
 ```
 
-The script builds `build/FastScreenshot.app`, copies it to `/Applications` and opens it. Without `--install` it only builds.
+The script builds `build/FastScreenshot.app`, copies it to `/Applications` and opens it. Without `--install` it only builds. `scripts/make-icon.swift` regenerates `Resources/AppIcon.icns` and `docs/icon.png`.
+
+### Login agent
 
 On launch the app writes `~/Library/LaunchAgents/com.durlea.fastscreenshot.plist` with `RunAtLoad` and `KeepAlive`, loads it and exits; launchd then runs the agent copy at every login and restarts it within 5 seconds when it exits. The menu has no Quit item. Opening the app while it runs shows Settings. When the agent is turned off in System Settings › General › Login Items, the copy opened from Finder keeps running, and the menu and Settings show a warning that opens Login Items.
 
@@ -48,13 +63,16 @@ A LaunchAgent written by the app replaces `SMAppService`: with an ad-hoc signatu
 The bundle is ad-hoc signed with the designated requirement `identifier "com.durlea.fastscreenshot"`, so the Accessibility grant stays valid across rebuilds.
 
 > [!NOTE]
-> Gatekeeper blocks an ad-hoc signed app downloaded from the internet. Build it locally, or remove the quarantine attribute with `xattr -dr com.apple.quarantine /Applications/FastScreenshot.app`.
+> The app is ad-hoc signed and not notarized, so Gatekeeper asks for Open Anyway once per download. A build made on the same Mac opens without the prompt.
 
 ---
 
 ## Onboarding
 
-The onboarding window opens at launch until Accessibility is granted and Done is pressed. Its only step is Accessibility: the step turns green within 2 seconds of the grant, and a Restart button appears 20 seconds after Open System Settings, for grants that macOS reports late. Below it, the demo shows the default trigger, mouse button 4.
+The onboarding window opens at launch until Accessibility is granted, a trigger is set and Done is pressed.
+
+1. Allow Accessibility. The step turns green within 2 seconds of the grant. A Restart button appears 20 seconds after Open System Settings, for grants that macOS reports late.
+2. Record the trigger and choose Clipboard or File.
 
 Launching the executable with `--onboarding` opens the window again.
 
@@ -67,7 +85,7 @@ Settings opens from the menu bar icon, or by opening the app while it runs.
 | Setting | Values | Default | Effect |
 | :--- | :--- | :--- | :--- |
 | Enabled | on, off | on | Off passes all trigger events through. |
-| Trigger | 1 or more keys and mouse buttons | Mouse button 4 | Inputs held together to start a capture. |
+| Trigger | 1 or more keys and mouse buttons | Not set | Inputs held together to start a capture. |
 | Save to | Clipboard, File | Clipboard | File saves where the macOS screenshot settings point. |
 | Start delay | 60–500 ms, step 10 | 120 ms | Wait between the shortcut and the mouse down. |
 

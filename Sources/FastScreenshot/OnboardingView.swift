@@ -36,12 +36,19 @@ struct OnboardingView: View {
                 }
             }
 
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Hold \(preferences.trigger?.title ?? "the trigger"), drag, release. The trigger and where captures go can be changed in Settings.")
+            step(2, "Choose the trigger", done: preferences.trigger != nil) {
+                Text("Press Record, then a key, a mouse button, or several together. They stop doing anything else while Fast Screenshot runs.")
                     .stepDetail()
+                TriggerRecorder()
                 TriggerDemo()
+                Picker("Save to", selection: $preferences.target) {
+                    ForEach(CaptureTarget.allCases) { Text($0.title).tag($0) }
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 240)
             }
             .opacity(status.accessibilityTrusted ? 1 : 0.4)
+            .disabled(!status.accessibilityTrusted)
 
             if status.loginBlocked {
                 WarningRow(text: "macOS blocked Fast Screenshot from opening at login and staying on.",
@@ -54,7 +61,7 @@ struct OnboardingView: View {
                 Spacer()
                 Button("Done", action: finish)
                     .keyboardShortcut(.defaultAction)
-                    .disabled(!status.accessibilityTrusted)
+                    .disabled(!status.accessibilityTrusted || preferences.trigger == nil)
             }
         }
         .padding(24)

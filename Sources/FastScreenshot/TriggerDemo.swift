@@ -205,10 +205,19 @@ private struct ScreenStage: View {
             GeometryReader { card in
                 ZStack(alignment: .topLeading) {
                     wallpaper(card.size)
-                    NotesWindow(active: true, graphite: look.graphite)
-                        .frame(width: size.width * 0.44, height: size.height * 0.50)
-                        .scaleEffect(card.size.width / (size.width * 0.5), anchor: .topLeading)
-                        .offset(x: card.size.width * 0.12, y: card.size.height * 0.1)
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(spacing: 2) {
+                            ForEach(0..<3, id: \.self) { _ in Circle().fill(Color.gray.opacity(0.7)).frame(width: 3, height: 3) }
+                        }
+                        ForEach(0..<3, id: \.self) { i in
+                            RoundedRectangle(cornerRadius: 1).fill(Color.primary.opacity(0.35))
+                                .frame(width: card.size.width * [0.45, 0.6, 0.35][i], height: 2)
+                        }
+                    }
+                    .padding(4)
+                    .frame(width: card.size.width * 0.75, height: card.size.height * 0.7, alignment: .topLeading)
+                    .background(RoundedRectangle(cornerRadius: 3).fill(Color(nsColor: .windowBackgroundColor)))
+                    .offset(x: card.size.width * 0.15, y: card.size.height * 0.18)
                 }
                 .frame(width: card.size.width, height: card.size.height)
                 .clipped()

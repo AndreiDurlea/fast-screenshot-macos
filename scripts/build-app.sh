@@ -12,7 +12,8 @@ swift build -c release
 bin="$(swift build -c release --show-bin-path)"
 
 rm -rf "$app"
-mkdir -p "$app/Contents/MacOS"
+mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
+cp Resources/AppIcon.icns "$app/Contents/Resources/AppIcon.icns"
 cp "$bin/FastScreenshot" "$app/Contents/MacOS/FastScreenshot"
 sed "s/VERSION_PLACEHOLDER/$(cat VERSION)/g" Resources/Info.plist > "$app/Contents/Info.plist"
 

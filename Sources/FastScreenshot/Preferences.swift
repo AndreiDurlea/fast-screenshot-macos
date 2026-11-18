@@ -11,7 +11,6 @@ final class Preferences: ObservableObject {
     @Published var onboarded: Bool { didSet { defaults.set(onboarded, forKey: Key.onboarded) } }
 
     static let delayRange = 60...500
-    static let defaultTrigger = Trigger(inputs: [.mouseButton(4)])
 
     private let defaults = UserDefaults.standard
 
@@ -30,7 +29,7 @@ final class Preferences: ObservableObject {
         delayMs = defaults.integer(forKey: Key.delay)
         enabled = defaults.bool(forKey: Key.enabled)
         onboarded = defaults.bool(forKey: Key.onboarded)
-        if trigger == nil { trigger = Self.defaultTrigger }
+        if trigger == nil { importLegacyConfig() }
     }
 
     private func save<T: Encodable>(_ value: T?, for key: String) {
@@ -41,4 +40,19 @@ final class Preferences: ObservableObject {
         }
     }
 
+    private func importLegacyConfig() {
+        let url = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".config/fast-screenshot/config.json")
+        guard let data = try? Data(contentsOf: url),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let trigger = json["trigger"] as? [String: Any]
+        else { return }
+
+        if let button = trigger["mouseButton"] as? Int, button >= 2 {
+            self.trigger = Trigger(inputs: [.mouseButton(Int64(button))])
+        } else if let code = trigger["keyCode"] as? Int {
+            self.trigger = Trigger(inputs: [.key(code: Int64(code), label: Input.keyLabel(code: Int64(code), characters: nil))])
+        }
+        if let target = (json["target"] as? String).flatMap(CaptureTarget.init(rawValue:)) { self.target = target }
+        if let delay = json["delayMs"] as? Int, Self.delayRange.contains(delay) { delayMs = delay }
+    }
 }
